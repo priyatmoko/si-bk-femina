@@ -138,24 +138,24 @@
                 const updatedDb = { ...db, [tableName]: newData };
                 setDb(updatedDb); 
                 
-                // 2. Ambil URL GAS
-                const url = GOOGLE_APPS_SCRIPT_URL.trim();
-                if (!url) return;
+                // 2. MASUKKAN URL GOOGLE APPS SCRIPT BAPAK DI SINI
+                // (Gunakan URL yang SAMA PERSIS dengan yang ada di fitur Sahabat Curhat)
+                const URL_GAS = "https://script.google.com/macros/s/AKfycbzHA2nAXfQOvggnNXIUjKmnatKtp3BNmxiJCOM67vKDEgulNa7xq5UHdNNctCoxbcva/exec";
 
                 // 3. Kirim ke Google Sheets dengan membawa keterangan action: "sync_db"
                 try {
-                    const response = await fetch(url, { 
+                    const response = await fetch(URL_GAS, { 
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify({ 
-                            action: "sync_db", // <-- Kunci pembeda agar server tidak bingung
+                            action: "sync_db", 
                             data: updatedDb 
                         }) 
                     });
                     
                     const result = await response.json();
                     if(result.status !== 'success') {
-                        console.error("Gagal menyimpan ke Google Sheets:", result);
+                        console.error("Gagal menyimpan ke Google Sheets:", result.message);
                     }
                 } catch (e) {
                     console.error("Gagal sinkronisasi ke server Google:", e);
