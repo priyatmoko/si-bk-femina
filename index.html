@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SI-BK FEMINA | MTsN 3 Magetan</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981', // Emerald 500
+                            600: '#059669', // Emerald 600
+                            700: '#047857',
+                            900: '#064e3b',
+                        },
+                        nisa: {
+                            50: '#fdf4ff',
+                            500: '#d946ef', // Fuchsia 500
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Chat bubble animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useContext, createContext, useRef } = React;
+
+        // --- Icons (Lucide simplified SVG wrappers) ---
+        const Icon = ({ path, className = "w-6 h-6", fill = "none", stroke = "currentColor" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d={path} />
+            </svg>
+        );
+        const Icons = {
+            Home: (p) => <Icon path="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10" {...p} />,
+            Users: (p) => <Icon path="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75" {...p} />,
+            BookOpen: (p) => <Icon path="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" {...p} />,
+            Heart: (p) => <Icon path="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" {...p} />,
+            MessageCircle: (p) => <Icon path="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" {...p} />,
+            Award: (p) => <Icon path="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M12 15l-3 6 3-1.5 3 1.5-3-6 M2 12h20" {...p} />,
+            AlertTriangle: (p) => <Icon path="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01" {...p} />,
+            LogOut: (p) => <Icon path="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" {...p} />,
+            Menu: (p) => <Icon path="M3 12h18 M3 6h18 M3 18h18" {...p} />,
+            X: (p) => <Icon path="M18 6L6 18 M6 6l12 12" {...p} />,
+            ChevronRight: (p) => <Icon path="M9 18l6-6-6-6" {...p} />,
+            Calendar: (p) => <Icon path="M3 4h18v16H3z M16 2v4 M8 2v4 M3 10h18" {...p} />,
+            Shield: (p) => <Icon path="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" {...p} />,
+            Moon: (p) => <Icon path="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" {...p} />,
+            Settings: (p) => <Icon path="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" {...p} />
+        };
+
+        // --- Mock Supabase Backend ---
+        // This simulates a PostgreSQL database with Row Level Security principles
+        const mockDatabase = {
+            profiles: [
+                { id: 'u1', email: 'admin@mtsn3.id', role: 'admin', full_name: 'Admin Madrasah', password: 'password123' },
+                { id: 'u2', email: 'bk@mtsn3.id', role: 'teacher', full_name: 'Bapak Budi, S.Pd (Guru BK)', password: 'password123' },
+                { id: 'u3', email: 'siswa1@mtsn3.id', role: 'student', full_name: 'Aisyah Putri', nisn: '0012345678', class_name: 'VIII-A', gender: 'P', password: 'password123' },
+                { id: 'u4', email: 'siswa2@mtsn3.id', role: 'student', full_name: 'Budi Santoso', nisn: '0012345679', class_name: 'VIII-A', gender: 'L', password: 'password123' },
+                { id: 'u5', email: 'ortu1@mtsn3.id', role: 'parent', full_name: 'Ibu Fatimah', linked_student_id: 'u3', password: 'password123' },
+            ],
+            discipline_records: [
+                { id: 'd1', student_id: 'u3', category: 'Keterlambatan', points: 5, notes: 'Terlambat 15 menit saat upacara', date: '2026-09-01', recorded_by: 'u2' },
+                { id: 'd2', student_id: 'u3', category: 'Prestasi', points: -10, notes: 'Juara 1 Lomba Pidato Bahasa Arab', date: '2026-09-05', recorded_by: 'u2' },
+                { id: 'd3', student_id: 'u4', category: 'Ketertiban', points: 10, notes: 'Baju dikeluarkan dan tidak memakai dasi', date: '2026-09-07', recorded_by: 'u2' },
+            ],
+            curhat_sessions: [
+                { id: 'c1', student_id: 'u3', created_at: '2026-09-06T10:00:00Z', messages: [
+                    { sender: 'ai', text: 'Halo Aisyah. Terima kasih sudah mau bercerita. Kamu tidak harus menghadapi semuanya sendirian. Ada yang ingin kamu sampaikan hari ini?' },
+                    { sender: 'user', text: 'Saya merasa sedikit cemas dengan ujian minggu depan kak.' },
+                    { sender: 'ai', text: 'Wajar merasa cemas menjelang ujian, Aisyah. Itu tandanya kamu peduli dengan hasilnya. Coba tarik napas dalam-dalam. Apakah kamu sudah membuat jadwal belajar yang tidak terlalu membebani?' }
+                ]},
+            ],
+            safety_flags: [],
+            menstrual_records: [
+                { student_id: 'u3', last_start_date: '2026-08-10', cycle_length: 28, status: 'suci', notes: 'Alhamdulillah siklus normal.' }
+            ]
+        };
+
+        // Simulating Supabase Client Interface
+        const mockSupabase = {
+            auth: {
+                signInWithPassword: async ({ email, password }) => {
+                    await new Promise(r => setTimeout(r, 800)); // Simulate network
+                    const user = mockDatabase.profiles.find(u => u.email === email && u.password === password);
+                    if (user) {
+                        const { password, ...safeUser } = user;
+                        localStorage.setItem('sb_session', JSON.stringify(safeUser));
+                        return { data: { user: safeUser }, error: null };
+                    }
+                    return { data: null, error: { message: 'Email atau kata sandi salah.' } };
+                },
+                signOut: async () => {
+                    await new Promise(r => setTimeout(r, 300));
+                    localStorage.removeItem('sb_session');
+                },
+                getUser: async () => {
+                    const session = localStorage.getItem('sb_session');
+                    return session ? { data: { user: JSON.parse(session) } } : { data: { user: null } };
+                }
+            },
+            // Simulated Data fetching with RLS enforcement
+            from: (table) => ({
+                select: async (query = '*') => {
+                    await new Promise(r => setTimeout(r, 400));
+                    const session = JSON.parse(localStorage.getItem('sb_session'));
+                    if (!session) return { data: null, error: { message: 'Unauthorized' } };
+
+                    let data = [...(mockDatabase[table] || [])];
+
+                    // --- SIMULATED ROW LEVEL SECURITY (RLS) ---
+                    if (session.role === 'student') {
+                        if (table === 'profiles') data = data.filter(d => d.id === session.id);
+                        else if (table === 'discipline_records') data = data.filter(d => d.student_id === session.id);
+                        else if (table === 'curhat_sessions') data = data.filter(d => d.student_id === session.id);
+                        else if (table === 'menstrual_records') data = data.filter(d => d.student_id === session.id);
+                        else if (table === 'safety_flags') data = []; // Students can't see flags
+                    } else if (session.role === 'parent') {
+                        const linkedChildId = mockDatabase.profiles.find(p => p.id === session.id)?.linked_student_id;
+                        if (table === 'profiles') data = data.filter(d => d.id === session.id || d.id === linkedChildId);
+                        else if (table === 'discipline_records') data = data.filter(d => d.student_id === linkedChildId);
+                        else data = []; // Restrict other tables completely
+                    } else if (session.role === 'teacher') {
+                        // Teachers can see student profiles and discipline, but not private curhat or menstrual records
+                        if (table === 'curhat_sessions') data = [];
+                        if (table === 'menstrual_records') data = [];
+                    }
+                    // Admin sees all (in this simplified mock)
+
+                    return { data, error: null };
+                },
+                insert: async (payload) => {
+                     await new Promise(r => setTimeout(r, 500));
+                     const session = JSON.parse(localStorage.getItem('sb_session'));
+                     if (!session) return { error: { message: 'Unauthorized' } };
+                     
+                     const newRecord = { id: 'id_' + Math.random().toString(36).substr(2, 9), ...payload };
+                     
+                     // RLS Checks for insert
+                     if (table === 'curhat_sessions' && session.role === 'student') {
+                         newRecord.student_id = session.id;
+                     } else if (table === 'discipline_records' && session.role !== 'teacher' && session.role !== 'admin') {
+                         return { error: { message: 'Hanya Guru/Admin yang dapat menambah poin.' } };
+                     }
+
+                     if(!mockDatabase[table]) mockDatabase[table] = [];
+                     mockDatabase[table].push(newRecord);
+                     return { data: [newRecord], error: null };
+                },
+                update: async (payload, match) => {
+                    await new Promise(r => setTimeout(r, 400));
+                    // Simplified mock update
+                    if(mockDatabase[table]) {
+                        const index = mockDatabase[table].findIndex(item => item.id === match.id || item.student_id === match.student_id);
+                        if(index > -1) {
+                            mockDatabase[table][index] = { ...mockDatabase[table][index], ...payload };
+                            return { data: [mockDatabase[table][index]], error: null };
+                        }
+                    }
+                    return { error: {message: 'Record not found'} };
+                }
+            })
+        };
+
+        // --- Auth Context ---
+        const AuthContext = createContext();
+
+        const AuthProvider = ({ children }) => {
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const initAuth = async () => {
+                    const { data } = await mockSupabase.auth.getUser();
+                    setUser(data.user);
+                    setLoading(false);
+                };
+                initAuth();
+            }, []);
+
+            const login = async (email, password) => {
+                setLoading(true);
+                const { data, error } = await mockSupabase.auth.signInWithPassword({ email, password });
+                if (data?.user) setUser(data.user);
+                setLoading(false);
+                return { error };
+            };
+
+            const logout = async () => {
+                await mockSupabase.auth.signOut();
+                setUser(null);
+            };
+
+            return (
+                <AuthContext.Provider value={{ user, loading, login, logout }}>
+                    {children}
+                </AuthContext.Provider>
+            );
+        };
+
+        // --- Shared UI Components ---
+        const Card = ({ children, className = "" }) => (
+            <div className={`bg-white rounded-2xl p-6 shadow-sm border border-slate-100 ${className}`}>
+                {children}
+            </div>
+        );
+
+        const Button = ({ children, onClick, variant = 'primary', className = "", disabled = false, type="button" }) => {
+            const baseStyle = "px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center justify-center disabled:opacity-50";
+            const variants = {
+                primary: "bg-brand-600 hover:bg-brand-700 text-white shadow-md shadow-brand-600/20",
+                secondary: "bg-slate-100 hover:bg-slate-200 text-slate-700",
+                danger: "bg-red-50 hover:bg-red-100 text-red-600",
+                nisa: "bg-nisa-500 hover:bg-fuchsia-600 text-white shadow-md shadow-nisa-500/20"
+            };
+            return (
+                <button type={type} onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant]} ${className}`}>
+                    {children}
+                </button>
+            );
+        };
+
+        const Input = ({ label, type = "text", value, onChange, placeholder, required = false }) => (
+            <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+                <input 
+                    type={type} 
+                    value={value} 
+                    onChange={onChange} 
+                    placeholder={placeholder}
+                    required={required}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all"
+                />
+            </div>
+        );
+
+        const Badge = ({ children, type = 'neutral' }) => {
+            const types = {
+                success: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                warning: "bg-amber-50 text-amber-700 border-amber-200",
+                danger: "bg-red-50 text-red-700 border-red-200",
+                info: "bg-blue-50 text-blue-700 border-blue-200",
+                neutral: "bg-slate-50 text-slate-700 border-slate-200",
+                nisa: "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200"
+            };
+            return (
+                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${types[type]}`}>
+                    {children}
+                </span>
+            );
+        };
+
+        // --- Landing Page ---
+        const LandingPage = ({ onLoginClick }) => {
+            return (
+                <div className="min-h-screen bg-slate-50">
+                    {/* Navbar */}
+                    <nav className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold">SI</div>
+                                <span className="font-bold text-xl text-slate-800 tracking-tight">SI-BK FEMINA</span>
+                            </div>
+                            <Button onClick={onLoginClick} variant="primary" className="text-sm">Masuk Portal</Button>
+                        </div>
+                    </nav>
+
+                    {/* Hero Section */}
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+                        <div className="text-center max-w-3xl mx-auto">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-sm font-medium mb-6">
+                                <Icons.Award className="w-4 h-4" /> INOTEK Kabupaten Magetan 2026
+                            </div>
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
+                                Teknologi untuk Madrasah yang Lebih <span className="text-brand-600">Tertib & Peduli</span>
+                            </h1>
+                            <p className="text-lg md:text-xl text-slate-600 mb-10 leading-relaxed">
+                                Sistem Informasi Bimbingan Konseling dan Pelacak Fikih An-Nisa terpadu untuk MTsN 3 Magetan. Mendukung kesejahteraan siswa dengan pendekatan Islami dan modern.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <Button onClick={onLoginClick} className="py-3 px-8 text-lg">Mulai Sekarang</Button>
+                                <Button variant="secondary" className="py-3 px-8 text-lg bg-white border border-slate-200">Pelajari Fitur</Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Features Grid */}
+                    <div className="bg-white py-24">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="grid md:grid-cols-3 gap-8">
+                                <Card className="border-none shadow-lg shadow-slate-200/50 hover:-translate-y-1 transition-transform">
+                                    <div className="w-12 h-12 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center mb-6">
+                                        <Icons.Shield className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-800 mb-3">E-Poin Kedisiplinan</h3>
+                                    <p className="text-slate-600">Pencatatan kedisiplinan dan prestasi siswa secara digital, transparan, dan terukur. Memudahkan pantauan Guru BK dan Wali Kelas.</p>
+                                </Card>
+                                <Card className="border-none shadow-lg shadow-fuchsia-200/50 hover:-translate-y-1 transition-transform">
+                                    <div className="w-12 h-12 rounded-xl bg-fuchsia-100 text-fuchsia-600 flex items-center justify-center mb-6">
+                                        <Icons.Moon className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-800 mb-3">Smart An-Nisa</h3>
+                                    <p className="text-slate-600">Modul edukasi fikih kewanitaan dan pelacakan siklus khusus siswi. Menjaga privasi dengan bimbingan Islami yang tepat.</p>
+                                </Card>
+                                <Card className="border-none shadow-lg shadow-blue-200/50 hover:-translate-y-1 transition-transform">
+                                    <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-6">
+                                        <Icons.MessageCircle className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-800 mb-3">Sahabat Curhat</h3>
+                                    <p className="text-slate-600">Dukungan emosional awal berbasis AI yang ramah. Membantu siswa bercerita dengan aman sebelum ditindaklanjuti oleh Guru BK sesungguhnya.</p>
+                                </Card>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Privacy Note */}
+                    <div className="max-w-4xl mx-auto text-center py-16 px-4">
+                        <Icons.Heart className="w-8 h-8 mx-auto text-brand-500 mb-4" />
+                        <h4 className="text-xl font-semibold mb-2">Privasi Siswa adalah Prioritas</h4>
+                        <p className="text-slate-500 text-sm">SI-BK FEMINA dibangun di atas arsitektur yang aman (simulasi Row Level Security). Data sensitif seperti konseling dan jadwal An-Nisa hanya dapat diakses oleh pihak yang berwenang sesuai SOP Madrasah.</p>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Login Page ---
+        const LoginPage = ({ onBack }) => {
+            const { login } = useContext(AuthContext);
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const handleLogin = async (e) => {
+    		e.preventDefault();
+    		setLoading(true); // Memunculkan efek loading
+    		setError('');     // Mengosongkan pesan error sebelumnya
+
+    		try {
+        		// 1. MASUKKAN URL GOOGLE APPS SCRIPT BAPAK DI SINI
+        		const URL_GAS = "https://script.google.com/macros/s/AKfycbzHA2nAXfQOvggnNXIUjKmnatKtp3BNmxiJCOM67vKDEgulNa7xq5UHdNNctCoxbcva/exec";
+        
+			// 2. Mengambil data dari Google Sheets (Sheet: Users)
+        		const response = await fetch(`${URL_GAS}?sheet=Users`);
+        		const dataUsers = await response.json();
+
+        		// 3. Mencari apakah email dan password yang diketik ada di database
+        		const foundUser = dataUsers.find(
+            			(user) => user.email === email && String(user.password) === String(password)
+        		);
+
+        		if (foundUser) {
+            			// 4. Jika data ditemukan, simpan data user ke dalam sistem (Login Berhasil)
+            			// Hapus kata 'login(email, password)' sebelumnya, ganti dengan fungsi yang
+            			// mengatur state user di aplikasi Bapak. Biasanya bernama setUser.
+            			setUser(foundUser); 
+            
+        	} else {
+            		// 5. Jika data tidak ditemukan / salah ketik
+           		 setError('Email atau kata sandi belum benar.');
+        	}
+
+    		} catch (err) {
+        		// 6. Jika internet mati atau URL GAS salah
+        		console.error(err);
+        	setError('Gagal terhubung ke server. Periksa koneksi internet Anda.');
+    		}
+
+    		setLoading(false); // Mematikan efek loading
+	};
+
+            const fillDemo = (role) => {
+                setPassword('password123');
+                if(role === 'student') setEmail('siswa1@mtsn3.id');
+                if(role === 'teacher') setEmail('bk@mtsn3.id');
+                if(role === 'parent') setEmail('ortu1@mtsn3.id');
+                if(role === 'admin') setEmail('admin@mtsn3.id');
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+                    <div className="sm:mx-auto sm:w-full sm:max-w-md">
+                        <div className="flex justify-center mb-6 cursor-pointer" onClick={onBack}>
+                            <div className="w-12 h-12 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-600/30">SI</div>
+                        </div>
+                        <h2 className="text-center text-3xl font-extrabold text-slate-900">
+                            Masuk ke SI-BK FEMINA
+                        </h2>
+                        <p className="mt-2 text-center text-sm text-slate-600">
+                            Gunakan kredensial yang diberikan oleh Admin Madrasah.
+                        </p>
+                    </div>
+
+                    <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+                        <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-100">
+                            <form className="space-y-6" onSubmit={handleLogin}>
+                                {error && (
+                                    <div className="p-3 rounded-xl bg-red-50 text-red-600 text-sm flex items-center gap-2">
+                                        <Icons.AlertTriangle className="w-4 h-4" /> {error}
+                                    </div>
+                                )}
+                                <Input label="Alamat Email" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} required />
+                                <Input label="Kata Sandi" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} required />
+                                
+                                <Button type="submit" className="w-full py-2.5" disabled={loading}>
+                                    {loading ? 'Memeriksa...' : 'Masuk'}
+                                </Button>
+                            </form>
+
+                            <div className="mt-8 border-t border-slate-100 pt-6">
+                                <p className="text-xs text-center text-slate-500 mb-4 font-semibold uppercase tracking-wider">Akses Demo INOTEK</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button variant="secondary" onClick={() => fillDemo('student')} className="text-xs py-1.5">Siswa Demo</Button>
+                                    <Button variant="secondary" onClick={() => fillDemo('teacher')} className="text-xs py-1.5">Guru BK Demo</Button>
+                                    <Button variant="secondary" onClick={() => fillDemo('parent')} className="text-xs py-1.5">Wali Murid Demo</Button>
+                                    <Button variant="secondary" onClick={() => fillDemo('admin')} className="text-xs py-1.5">Admin Demo</Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Dashboard Layout ---
+        const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
+            const { user, logout } = useContext(AuthContext);
+            const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+            // Role-based Navigation logic
+            const getNavItems = () => {
+                const navs = {
+                    student: [
+                        { id: 'home', label: 'Beranda', icon: <Icons.Home className="w-5 h-5"/> },
+                        { id: 'epoin', label: 'E-Poin', icon: <Icons.Shield className="w-5 h-5"/> },
+                        { id: 'nisa', label: 'Smart An-Nisa', icon: <Icons.Moon className="w-5 h-5"/>, femaleOnly: true },
+                        { id: 'curhat', label: 'Sahabat Curhat', icon: <Icons.MessageCircle className="w-5 h-5"/> }
+                    ],
+                    teacher: [
+                        { id: 'dashboard', label: 'Dashboard', icon: <Icons.Home className="w-5 h-5"/> },
+                        { id: 'students', label: 'Data Siswa', icon: <Icons.Users className="w-5 h-5"/> },
+                        { id: 'epoin-input', label: 'Input E-Poin', icon: <Icons.Shield className="w-5 h-5"/> }
+                    ],
+                    parent: [
+                        { id: 'child-monitor', label: 'Pantau Anak', icon: <Icons.Home className="w-5 h-5"/> }
+                    ],
+                    admin: [
+                        { id: 'admin-dash', label: 'Sistem Admin', icon: <Icons.Settings className="w-5 h-5"/> }
+                    ]
+                };
+                
+                let items = navs[user.role] || [];
+                // Filter specifically for female students
+                if (user.role === 'student' && user.gender !== 'P') {
+                    items = items.filter(item => !item.femaleOnly);
+                }
+                return items;
+            };
+
+            const navItems = getNavItems();
+
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+                    {/* Mobile Header */}
+                    <div className="md:hidden bg-white border-b border-slate-200 p-4 flex justify-between items-center sticky top-0 z-40">
+                        <div className="font-bold text-lg text-brand-600">SI-BK FEMINA</div>
+                        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600">
+                            {isMobileMenuOpen ? <Icons.X /> : <Icons.Menu />}
+                        </button>
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:block w-full md:w-64 bg-white border-r border-slate-200 flex-shrink-0 z-30 fixed md:sticky top-0 h-screen overflow-y-auto`}>
+                        <div className="p-6 hidden md:block">
+                            <div className="flex items-center gap-3 mb-1">
+                                <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold text-sm">SI</div>
+                                <span className="font-bold text-xl text-slate-800 tracking-tight">FEMINA</span>
+                            </div>
+                            <div className="text-xs text-slate-500 font-medium ml-11">MTsN 3 Magetan</div>
+                        </div>
+
+                        <div className="px-4 py-6">
+                            <div className="mb-6 px-3 flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold uppercase">
+                                    {user.full_name.charAt(0)}
+                                </div>
+                                <div className="overflow-hidden">
+                                    <div className="text-sm font-semibold text-slate-800 truncate">{user.full_name}</div>
+                                    <div className="text-xs text-slate-500 capitalize">{user.role === 'student' ? user.class_name : user.role}</div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                {navItems.map(item => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => { setActiveTab(item.id); setIsMobileMenuOpen(false); }}
+                                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                                            activeTab === item.id 
+                                            ? 'bg-brand-50 text-brand-700' 
+                                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                        }`}
+                                    >
+                                        <span className={activeTab === item.id ? 'text-brand-600' : 'text-slate-400'}>{item.icon}</span>
+                                        {item.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="absolute bottom-0 w-full p-4 border-t border-slate-100 bg-white">
+                            <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors">
+                                <Icons.LogOut className="w-5 h-5 opacity-70" />
+                                Keluar
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    <div className="flex-1 overflow-x-hidden min-h-screen pb-20 md:pb-0">
+                        <main className="p-4 md:p-8 max-w-6xl mx-auto animate-fade-in">
+                            {children}
+                        </main>
+                    </div>
+                    
+                    {/* Mobile Bottom Navigation (Optional enhancement) */}
+                    <div className="md:hidden fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-around p-2 pb-safe z-40">
+                         {navItems.slice(0, 4).map(item => (
+                             <button
+                                key={`mob-${item.id}`}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`flex flex-col items-center p-2 rounded-lg ${activeTab === item.id ? 'text-brand-600' : 'text-slate-400'}`}
+                             >
+                                 {item.icon}
+                                 <span className="text-[10px] mt-1 font-medium">{item.label}</span>
+                             </button>
+                         ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Student Views ---
+        
+        // E-Poin Logic Helper
+        const calculateDisciplineStatus = (totalPoints) => {
+            if (totalPoints <= 10) return { label: 'Sangat Baik', type: 'success' };
+            if (totalPoints <= 20) return { label: 'Perlu Perhatian', type: 'warning' };
+            if (totalPoints <= 30) return { label: 'Pembinaan', type: 'danger' };
+            return { label: 'Perlu Tindak Lanjut', type: 'danger' };
+        };
+
+        const StudentHome = ({ onNavigate }) => {
+            const { user } = useContext(AuthContext);
+            const [records, setRecords] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const fetchData = async () => {
+                    const { data } = await mockSupabase.from('discipline_records').select();
+                    setRecords(data || []);
+                    setLoading(false);
+                };
+                fetchData();
+            }, []);
+
+            const totalPoints = records.reduce((sum, r) => sum + r.points, 0);
+            const status = calculateDisciplineStatus(totalPoints);
+
+            return (
+                <div className="space-y-6">
+                    <header className="mb-8">
+                        <h1 className="text-2xl font-bold text-slate-800">Assalamu'alaikum, {user.full_name.split(' ')[0]} 👋</h1>
+                        <p className="text-slate-500">Semoga harimu di madrasah menyenangkan.</p>
+                    </header>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* E-Poin Widget */}
+                        <Card className="bg-gradient-to-br from-brand-500 to-brand-700 text-white border-none shadow-lg shadow-brand-500/30">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <p className="text-brand-100 text-sm font-medium mb-1">Total E-Poin Pelanggaran</p>
+                                    <h2 className="text-4xl font-extrabold">{totalPoints}</h2>
+                                </div>
+                                <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                                    <Icons.Shield className="w-6 h-6 text-white" />
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm bg-black/10 w-fit px-3 py-1.5 rounded-full">
+                                <span>Status:</span>
+                                <span className="font-semibold">{status.label}</span>
+                            </div>
+                        </Card>
+
+                        {/* Feature Shortcuts */}
+                        {user.gender === 'P' && (
+                            <Card className="cursor-pointer hover:border-fuchsia-300 transition-colors flex flex-col justify-between" onClick={() => onNavigate('nisa')}>
+                                <div>
+                                    <div className="w-10 h-10 rounded-xl bg-fuchsia-50 text-fuchsia-600 flex items-center justify-center mb-4">
+                                        <Icons.Moon className="w-5 h-5" />
+                                    </div>
+                                    <h3 className="font-bold text-slate-800">Smart An-Nisa</h3>
+                                    <p className="text-sm text-slate-500 mt-1">Edukasi fikih & jurnal siklus khusus siswi.</p>
+                                </div>
+                                <div className="mt-4 text-sm font-medium text-fuchsia-600 flex items-center gap-1">
+                                    Buka Modul <Icons.ChevronRight className="w-4 h-4" />
+                                </div>
+                            </Card>
+                        )}
+
+                        <Card className="cursor-pointer hover:border-blue-300 transition-colors flex flex-col justify-between" onClick={() => onNavigate('curhat')}>
+                            <div>
+                                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+                                    <Icons.MessageCircle className="w-5 h-5" />
+                                </div>
+                                <h3 className="font-bold text-slate-800">Sahabat Curhat</h3>
+                                <p className="text-sm text-slate-500 mt-1">Ruang aman untuk mulai bercerita (AI Support).</p>
+                            </div>
+                            <div className="mt-4 text-sm font-medium text-blue-600 flex items-center gap-1">
+                                Mulai Sesi <Icons.ChevronRight className="w-4 h-4" />
+                            </div>
+                        </Card>
+                    </div>
+
+                    <h3 className="font-bold text-lg text-slate-800 mt-8 mb-4">Catatan Terbaru</h3>
+                    <Card className="p-0 overflow-hidden">
+                        {loading ? (
+                            <div className="p-8 text-center text-slate-400 text-sm">Memuat data...</div>
+                        ) : records.length === 0 ? (
+                            <div className="p-8 text-center text-slate-500 text-sm">Belum ada catatan kedisiplinan. Pertahankan!</div>
+                        ) : (
+                            <div className="divide-y divide-slate-100">
+                                {records.slice(0, 3).map(record => (
+                                    <div key={record.id} className="p-4 flex justify-between items-center hover:bg-slate-50">
+                                        <div>
+                                            <div className="font-medium text-slate-800">{record.category}</div>
+                                            <div className="text-xs text-slate-500">{record.date} • {record.notes}</div>
+                                        </div>
+                                        <Badge type={record.points > 0 ? 'danger' : 'success'}>
+                                            {record.points > 0 ? '+' : ''}{record.points} Poin
+                                        </Badge>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <div className="p-3 bg-slate-50 text-center text-sm text-brand-600 font-medium cursor-pointer" onClick={() => onNavigate('epoin')}>
+                            Lihat Semua Riwayat
+                        </div>
+                    </Card>
+                </div>
+            );
+        };
+
+        const StudentEPoin = () => {
+             const [records, setRecords] = useState([]);
+             
+             useEffect(() => {
+                const fetchData = async () => {
+                    const { data } = await mockSupabase.from('discipline_records').select();
+                    setRecords(data || []);
+                };
+                fetchData();
+            }, []);
+
+            const totalPoints = records.reduce((sum, r) => sum + r.points, 0);
+
+            return (
+                <div className="space-y-6">
+                    <header>
+                        <h2 className="text-xl font-bold text-slate-800">Riwayat E-Poin Kedisiplinan</h2>
+                        <p className="text-sm text-slate-500">Transparansi catatan kedisiplinan dan prestasi.</p>
+                    </header>
+
+                    <Card className="bg-slate-900 text-white flex justify-between items-center border-none">
+                        <div>
+                            <p className="text-slate-400 text-sm">Total Poin Saat Ini</p>
+                            <h2 className="text-3xl font-bold">{totalPoints}</h2>
+                        </div>
+                        <Badge type={totalPoints > 20 ? 'danger' : 'success'}>
+                            {calculateDisciplineStatus(totalPoints).label}
+                        </Badge>
+                    </Card>
+
+                    <Card className="p-0 overflow-hidden">
+                        <div className="divide-y divide-slate-100">
+                             {records.map(record => (
+                                <div key={record.id} className="p-4 sm:flex justify-between items-center hover:bg-slate-50">
+                                    <div className="mb-2 sm:mb-0">
+                                        <div className="font-medium text-slate-800">{record.category}</div>
+                                        <div className="text-sm text-slate-600 mt-1">{record.notes}</div>
+                                        <div className="text-xs text-slate-400 mt-1">{record.date}</div>
+                                    </div>
+                                    <div className="shrink-0">
+                                        <Badge type={record.points > 0 ? 'danger' : 'success'}>
+                                            {record.points > 0 ? '+' : ''}{record.points} Poin
+                                        </Badge>
+                                    </div>
+                                </div>
+                            ))}
+                            {records.length === 0 && <div className="p-8 text-center text-slate-500">Data bersih.</div>}
+                        </div>
+                    </Card>
+                </div>
+            );
+        };
+
+        const SmartAnNisa = () => {
+            const [status, setStatus] = useState('suci');
+            
+            return (
+                <div className="space-y-6 max-w-3xl">
+                    <header>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Icons.Moon className="w-6 h-6 text-fuchsia-600" />
+                            <h2 className="text-2xl font-bold text-slate-800">Smart An-Nisa</h2>
+                        </div>
+                        <p className="text-sm text-slate-500">Edukasi Fikih Kewanitaan dan Jurnal Pribadi.</p>
+                    </header>
+
+                    <div className="bg-fuchsia-50 border border-fuchsia-100 rounded-xl p-4 text-sm text-fuchsia-800 flex gap-3">
+                        <Icons.Shield className="w-5 h-5 shrink-0 text-fuchsia-600" />
+                        <p><strong>Privasi Terjamin:</strong> Modul ini bersifat rahasia. Data jurnal hanya dapat diakses oleh kamu dan pembina putri berwenang sesuai kebijakan madrasah.</p>
+                    </div>
+
+                    <Card className="border-t-4 border-t-fuchsia-500">
+                        <h3 className="font-bold text-slate-800 mb-4">Status Hari Ini</h3>
+                        <div className="flex flex-col sm:flex-row gap-4 items-center">
+                             <div className="flex-1 w-full flex gap-2">
+                                <button onClick={() => setStatus('haid')} className={`flex-1 py-3 rounded-xl border font-medium transition-all ${status === 'haid' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-200 text-slate-600'}`}>Masa Haid</button>
+                                <button onClick={() => setStatus('suci')} className={`flex-1 py-3 rounded-xl border font-medium transition-all ${status === 'suci' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}>Masa Suci</button>
+                             </div>
+                        </div>
+                        <div className="mt-6 pt-6 border-t border-slate-100">
+                            <h4 className="font-semibold text-sm text-slate-700 mb-2">Tuntunan Beribadah Saat Ini:</h4>
+                            {status === 'haid' ? (
+                                <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                                    <li>Tidak diperbolehkan Shalat dan Puasa.</li>
+                                    <li>Membaca Al-Qur'an (mushaf) dilarang menurut mayoritas ulama, namun diperbolehkan membaca doa/dzikir.</li>
+                                    <li>Perbanyak istighfar dan selawat.</li>
+                                </ul>
+                            ) : (
+                                <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                                    <li>Wajib melaksanakan Shalat fardhu.</li>
+                                    <li>Dianjurkan membaca Al-Qur'an rutin.</li>
+                                    <li>Pastikan tata cara mandi wajib (thaharah) sebelumnya sudah benar sesuai kaidah fikih.</li>
+                                </ul>
+                            )}
+                        </div>
+                    </Card>
+
+                    <h3 className="font-bold text-lg text-slate-800 mt-8 mb-4">Materi Edukasi Fikih</h3>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        <Card className="hover:shadow-md cursor-pointer transition-shadow">
+                            <Icons.BookOpen className="w-8 h-8 text-brand-600 mb-3" />
+                            <h4 className="font-semibold mb-1">Tata Cara Mandi Wajib</h4>
+                            <p className="text-xs text-slate-500">Panduan lengkap langkah demi langkah thaharah sesuai sunnah.</p>
+                        </Card>
+                        <Card className="hover:shadow-md cursor-pointer transition-shadow">
+                            <Icons.BookOpen className="w-8 h-8 text-fuchsia-600 mb-3" />
+                            <h4 className="font-semibold mb-1">Mengenal Darah Kebiasaan</h4>
+                            <p className="text-xs text-slate-500">Perbedaan haid, istihadhah, dan nifas dalam tinjauan fikih.</p>
+                        </Card>
+                    </div>
+                </div>
+            );
+        };
+
+        const SahabatCurhat = () => {
+            const { user } = useContext(AuthContext);
+            const [messages, setMessages] = useState([
+                { id: 1, sender: 'ai', text: `Halo ${user.full_name.split(' ')[0]}. Terima kasih sudah mau mampir. Ini adalah ruang aman untukmu. Ada hal yang mengganggu pikiranmu akhir-akhir ini?` }
+            ]);
+            const [input, setInput] = useState('');
+            const [isTyping, setIsTyping] = useState(false);
+            const chatEndRef = useRef(null);
+
+            useEffect(() => {
+                chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [messages, isTyping]);
+
+            const handleSendMessage = async (teksPesan) => {
+    		// 1. Munculkan pesan siswa di layar terlebih dahulu
+    		const pesanBaruSiswa = { role: 'user', content: teksPesan };
+    		setMessages((prev) => [...prev, pesanBaruSiswa]);
+    
+    		// 2. Munculkan indikator "Sahabat Curhat sedang mengetik..."
+    		setIsTyping(true); 
+
+    		try {
+        		// 3. Masukkan URL Apps Script Bapak
+        		const URL_GAS = "https://script.google.com/macros/s/MASUKKAN_URL_ANDA_DI_SINI/exec";
+        
+        		// 4. Kirim teks ke Google Apps Script
+        		const response = await fetch(URL_GAS, {
+            			method: "POST",
+            			body: JSON.stringify({
+                			action: "chat_ai",
+                			message: teksPesan
+            			})
+        		});
+        
+			const data = await response.json();
+        
+        		// 5. Tangkap balasan dari AI dan tampilkan di layar
+        		if(data.status === 'success') {
+            			const balasanAI = { role: 'assistant', content: data.reply };
+            			setMessages((prev) => [...prev, balasanAI]);
+        		}
+
+    		} catch (err) {
+        		console.error(err);
+        		// Jika internet terputus
+        		setMessages((prev) => [...prev, { 
+            			role: 'assistant', 
+            			content: 'Maaf ya, koneksiku sedang terputus. Coba kirim pesanmu lagi ya.' 
+        		}]);
+    	}
+    
+    // 6. Matikan indikator mengetik
+    setIsTyping(false);
+};
+
+            return (
+                <div className="flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-80px)] max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <header className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center relative">
+                                <Icons.MessageCircle className="w-5 h-5 text-blue-600" />
+                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-800 text-sm">Sahabat Curhat (AI)</h3>
+                                <p className="text-xs text-slate-500">Dukungan Emosional Awal</p>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    <div className="bg-amber-50 p-2.5 text-center text-[11px] text-amber-800 border-b border-amber-100">
+                        <strong>Perhatian:</strong> AI ini dirancang untuk mendengarkan. AI bukan psikolog/dokter. Untuk penanganan nyata, temui Guru BK secara langsung.
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+                        {messages.map(msg => (
+                            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+                                <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
+                                    msg.sender === 'user' 
+                                    ? 'bg-brand-600 text-white rounded-br-sm shadow-md shadow-brand-600/10' 
+                                    : 'bg-white text-slate-700 rounded-bl-sm border border-slate-200 shadow-sm'
+                                }`}>
+                                    {msg.text}
+                                </div>
+                            </div>
+                        ))}
+                        {isTyping && (
+                            <div className="flex justify-start">
+                                <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm flex gap-1">
+                                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></div>
+                                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={chatEndRef} />
+                    </div>
+
+                    <div className="p-4 bg-white border-t border-slate-100">
+                        <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-3 pb-1">
+                            {['Masalah Teman', 'Sulit Belajar', 'Merasa Cemas'].map(topic => (
+                                <button key={topic} onClick={() => setInput(`Saya ingin cerita tentang ${topic.toLowerCase()}`)} 
+                                        className="whitespace-nowrap px-3 py-1 rounded-full border border-slate-200 text-xs text-slate-600 hover:bg-slate-50">
+                                    {topic}
+                                </button>
+                            ))}
+                        </div>
+                        <form onSubmit={handleSend} className="flex gap-2 relative">
+                            <input 
+                                type="text" 
+                                value={input} 
+                                onChange={e => setInput(e.target.value)}
+                                placeholder="Ketik pesan di sini..." 
+                                className="flex-1 bg-slate-100 border-transparent rounded-full px-4 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
+                            />
+                            <button type="submit" disabled={!input.trim()} className="w-10 h-10 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0 hover:bg-brand-700 disabled:opacity-50 transition-colors">
+                                <Icons.ChevronRight className="w-5 h-5 ml-0.5" />
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Teacher Views ---
+        const TeacherDashboard = () => {
+             const [records, setRecords] = useState([]);
+             const [students, setStudents] = useState([]);
+             
+             useEffect(() => {
+                const fetchData = async () => {
+                    const [recRes, stuRes] = await Promise.all([
+                        mockSupabase.from('discipline_records').select(),
+                        mockSupabase.from('profiles').select()
+                    ]);
+                    setRecords(recRes.data || []);
+                    setStudents(stuRes.data?.filter(u => u.role === 'student') || []);
+                };
+                fetchData();
+            }, []);
+
+            // Calculate aggregate data
+            const studentPoints = {};
+            records.forEach(r => {
+                studentPoints[r.student_id] = (studentPoints[r.student_id] || 0) + r.points;
+            });
+
+            let highRiskCount = 0;
+            let medRiskCount = 0;
+
+            Object.values(studentPoints).forEach(pts => {
+                if(pts > 30) highRiskCount++;
+                else if(pts > 20) medRiskCount++;
+            });
+
+            return (
+                <div className="space-y-6">
+                    <header>
+                        <h2 className="text-2xl font-bold text-slate-800">Dashboard Guru BK</h2>
+                        <p className="text-slate-500">Ringkasan aktivitas kedisiplinan madrasah.</p>
+                    </header>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Card className="p-4 border-l-4 border-l-slate-400">
+                            <p className="text-xs text-slate-500 font-medium">Total Siswa</p>
+                            <h3 className="text-2xl font-bold mt-1">{students.length}</h3>
+                        </Card>
+                        <Card className="p-4 border-l-4 border-l-emerald-500">
+                            <p className="text-xs text-slate-500 font-medium">Poin Terinput</p>
+                            <h3 className="text-2xl font-bold mt-1">{records.length}</h3>
+                        </Card>
+                        <Card className="p-4 border-l-4 border-l-amber-500 bg-amber-50/30">
+                            <p className="text-xs text-amber-700 font-medium">Perlu Pembinaan (20+ pt)</p>
+                            <h3 className="text-2xl font-bold mt-1 text-amber-700">{medRiskCount}</h3>
+                        </Card>
+                        <Card className="p-4 border-l-4 border-l-red-500 bg-red-50/30">
+                            <p className="text-xs text-red-700 font-medium">Tindak Lanjut (30+ pt)</p>
+                            <h3 className="text-2xl font-bold mt-1 text-red-700">{highRiskCount}</h3>
+                        </Card>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <Card>
+                            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <Icons.AlertTriangle className="w-5 h-5 text-red-500" />
+                                Siswa Perlu Perhatian
+                            </h3>
+                            <div className="space-y-3">
+                                {/* Dummy calculation for view */}
+                                {students.filter(s => (studentPoints[s.id] || 0) > 20).map(s => (
+                                    <div key={s.id} className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                        <div>
+                                            <div className="font-medium text-sm text-slate-800">{s.full_name}</div>
+                                            <div className="text-xs text-slate-500">{s.class_name} • {s.nisn}</div>
+                                        </div>
+                                        <Badge type="danger">{studentPoints[s.id]} Poin</Badge>
+                                    </div>
+                                ))}
+                                {students.filter(s => (studentPoints[s.id] || 0) > 20).length === 0 && 
+                                    <div className="text-sm text-slate-500 text-center p-4">Tidak ada siswa berisiko tinggi saat ini.</div>
+                                }
+                            </div>
+                        </Card>
+
+                        <Card>
+                            <h3 className="font-bold text-slate-800 mb-4">Input Terakhir</h3>
+                            <div className="divide-y divide-slate-100">
+                                {records.slice(0, 4).map(r => {
+                                    const stu = students.find(s => s.id === r.student_id);
+                                    return (
+                                        <div key={r.id} className="py-2.5 flex justify-between items-start">
+                                            <div>
+                                                <div className="text-sm font-medium text-slate-700">{stu ? stu.full_name : 'Unknown'}</div>
+                                                <div className="text-xs text-slate-500">{r.category}</div>
+                                            </div>
+                                            <span className={`text-xs font-bold ${r.points > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                                                {r.points > 0 ? '+' : ''}{r.points}
+                                            </span>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </Card>
+                    </div>
+                </div>
+            );
+        };
+
+        const TeacherInputEpoin = () => {
+             const [students, setStudents] = useState([]);
+             const [form, setForm] = useState({ student_id: '', category: 'Keterlambatan', points: 5, notes: '', date: new Date().toISOString().split('T')[0] });
+             const [loading, setLoading] = useState(false);
+             const [msg, setMsg] = useState('');
+
+             useEffect(() => {
+                const fetchStudents = async () => {
+                    const { data } = await mockSupabase.from('profiles').select();
+                    setStudents(data?.filter(u => u.role === 'student') || []);
+                };
+                fetchStudents();
+            }, []);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                const { error } = await mockSupabase.from('discipline_records').insert({
+                    ...form,
+                    points: parseInt(form.points)
+                });
+                setLoading(false);
+                if(error) setMsg('Gagal: ' + error.message);
+                else {
+                    setMsg('Berhasil menyimpan poin.');
+                    setForm({...form, notes: ''});
+                    setTimeout(()=>setMsg(''), 3000);
+                }
+            };
+
+            return (
+                 <div className="max-w-2xl">
+                    <header className="mb-6">
+                        <h2 className="text-2xl font-bold text-slate-800">Input E-Poin Siswa</h2>
+                    </header>
+
+                    <Card>
+                        {msg && <div className={`p-3 mb-4 rounded-lg text-sm ${msg.includes('Gagal') ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>{msg}</div>}
+                        
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Pilih Siswa</label>
+                                <select required value={form.student_id} onChange={e=>setForm({...form, student_id: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none">
+                                    <option value="">-- Pilih Siswa --</option>
+                                    {students.map(s => <option key={s.id} value={s.id}>{s.full_name} ({s.class_name})</option>)}
+                                </select>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
+                                    <select required value={form.category} onChange={e=>setForm({...form, category: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none">
+                                        <option value="Keterlambatan">Keterlambatan</option>
+                                        <option value="Seragam/Kerapian">Seragam/Kerapian</option>
+                                        <option value="Ketertiban">Ketertiban Kelas</option>
+                                        <option value="Alpa/Bolos">Alpa/Bolos</option>
+                                        <option value="Prestasi">Prestasi (Poin Minus)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                     <label className="block text-sm font-medium text-slate-700 mb-1">Bobot Poin</label>
+                                     <input type="number" required value={form.points} onChange={e=>setForm({...form, points: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none" />
+                                </div>
+                            </div>
+                            
+                            <Input label="Catatan Spesifik" value={form.notes} onChange={e=>setForm({...form, notes: e.target.value})} placeholder="Misal: Terlambat 20 menit saat jam pertama" required />
+                            <Input label="Tanggal Kejadian" type="date" value={form.date} onChange={e=>setForm({...form, date: e.target.value})} required />
+                            
+                            <Button type="submit" disabled={loading || !form.student_id} className="w-full py-3 mt-4">
+                                {loading ? 'Menyimpan...' : 'Simpan Rekam Jejak'}
+                            </Button>
+                        </form>
+                    </Card>
+                 </div>
+            );
+        };
+
+        const ParentDashboard = () => {
+            const { user } = useContext(AuthContext);
+            const [childData, setChildData] = useState(null);
+            const [records, setRecords] = useState([]);
+
+            useEffect(() => {
+                const fetchData = async () => {
+                    const { data: profiles } = await mockSupabase.from('profiles').select();
+                    const child = profiles?.find(p => p.id === user.linked_student_id);
+                    setChildData(child);
+
+                    if(child) {
+                        const { data: recs } = await mockSupabase.from('discipline_records').select();
+                        setRecords(recs || []);
+                    }
+                };
+                fetchData();
+            }, [user]);
+
+            if (!childData) return <div className="p-8 text-center text-slate-500">Memuat data anak...</div>;
+
+            const totalPoints = records.reduce((sum, r) => sum + r.points, 0);
+
+            return (
+                <div className="space-y-6 max-w-3xl mx-auto">
+                    <header className="mb-8">
+                        <h1 className="text-2xl font-bold text-slate-800">Pantau Perkembangan Anak</h1>
+                        <p className="text-slate-500">Transparansi madrasah untuk orang tua/wali.</p>
+                    </header>
+
+                    <Card className="flex items-center gap-4 bg-brand-50 border border-brand-100">
+                        <div className="w-14 h-14 rounded-full bg-brand-200 text-brand-700 flex items-center justify-center font-bold text-xl uppercase">
+                            {childData.full_name.charAt(0)}
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg text-slate-800">{childData.full_name}</h3>
+                            <p className="text-sm text-slate-600">Kelas {childData.class_name} • NISN: {childData.nisn}</p>
+                        </div>
+                    </Card>
+
+                    <Card>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="font-bold text-slate-800">Status Kedisiplinan</h3>
+                            <Badge type={totalPoints > 20 ? 'danger' : 'success'}>{calculateDisciplineStatus(totalPoints).label}</Badge>
+                        </div>
+                        
+                        <div className="space-y-3">
+                            {records.length === 0 ? (
+                                <p className="text-sm text-slate-500 text-center py-4">Belum ada catatan pelanggaran. Alhamdulillah.</p>
+                            ) : (
+                                records.map(r => (
+                                    <div key={r.id} className="flex justify-between items-center p-3 rounded-lg border border-slate-100 text-sm">
+                                        <div>
+                                            <span className="font-medium">{r.category}</span>
+                                            <span className="text-slate-500 block text-xs mt-0.5">{r.date} • {r.notes}</span>
+                                        </div>
+                                        <span className={`font-bold ${r.points > 0 ? 'text-red-500' : 'text-emerald-500'}`}>{r.points} pt</span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </Card>
+                </div>
+            );
+        };
+
+        const AdminDashboard = () => {
+            return (
+                <div className="max-w-4xl mx-auto">
+                    <header className="mb-6">
+                        <h2 className="text-2xl font-bold text-slate-800">Manajemen Sistem (Admin)</h2>
+                    </header>
+                    <Card className="text-center py-12 border-dashed border-2">
+                        <Icons.Settings className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-bold text-slate-700 mb-2">Panel Admin Sedang Dalam Pengembangan</h3>
+                        <p className="text-sm text-slate-500 max-w-md mx-auto">Untuk keperluan Demo INOTEK, fungsi manajemen user (Create/Update/Delete) disimulasikan melalui database backend internal.</p>
+                    </Card>
+                </div>
+            );
+        };
+
+        // --- Main App Component ---
+        const App = () => {
+            const { user, loading } = useContext(AuthContext);
+            const [showLogin, setShowLogin] = useState(false);
+            const [activeTab, setActiveTab] = useState('');
+
+            // Set default tab on login
+            useEffect(() => {
+                if (user && !activeTab) {
+                    if (user.role === 'student') setActiveTab('home');
+                    else if (user.role === 'teacher') setActiveTab('dashboard');
+                    else if (user.role === 'parent') setActiveTab('child-monitor');
+                    else if (user.role === 'admin') setActiveTab('admin-dash');
+                }
+            }, [user, activeTab]);
+
+            if (loading) return <div className="min-h-screen flex items-center justify-center text-brand-600 font-medium">Memuat SI-BK FEMINA...</div>;
+
+            if (!user) {
+                if (showLogin) return <LoginPage onBack={() => setShowLogin(false)} />;
+                return <LandingPage onLoginClick={() => setShowLogin(true)} />;
+            }
+
+            // Router based on activeTab
+            const renderContent = () => {
+                switch (activeTab) {
+                    // Student
+                    case 'home': return <StudentHome onNavigate={setActiveTab} />;
+                    case 'epoin': return <StudentEPoin />;
+                    case 'nisa': return <SmartAnNisa />;
+                    case 'curhat': return <SahabatCurhat />;
+                    // Teacher
+                    case 'dashboard': return <TeacherDashboard />;
+                    case 'epoin-input': return <TeacherInputEpoin />;
+                    // Parent
+                    case 'child-monitor': return <ParentDashboard />;
+                    // Admin
+                    case 'admin-dash': return <AdminDashboard />;
+                    default: return <div className="p-8 text-center">Fitur dalam pengembangan.</div>;
+                }
+            };
+
+            return (
+                <DashboardLayout activeTab={activeTab} setActiveTab={setActiveTab}>
+                    {renderContent()}
+                </DashboardLayout>
+            );
+        };
+
+        const Root = () => (
+            <AuthProvider>
+                <App />
+            </AuthProvider>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Root />);
+    </script>
+</body>
+</html>
