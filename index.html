@@ -60,7 +60,7 @@
         };
 
         // URL GAS Anda. Masukkan di sini jika sudah ada. Kosongkan untuk mode Demo Lokal.
-        const GOOGLE_APPS_SCRIPT_URL = "MASUKKAN_URL_GAS_BAPAK_DI_SINI"; 
+        const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxS_dVupmTEFU0XkasXRwyxgrSqcJWlad0_1PjA8rqIbd4E2a6I5F4HDHTbFz7er9LgOw/exec"; 
 
         // Database bawaan jika belum terhubung ke Google Sheets
         const initialDB = {
@@ -104,7 +104,7 @@
             // 1. Mengambil data dari Google Sheets saat aplikasi pertama kali dibuka
             useEffect(() => {
                 const url = GOOGLE_APPS_SCRIPT_URL.trim();
-                if (url && url !== "MASUKKAN_URL_GAS_BAPAK_DI_SINI" && url !== "") {
+                if (url && url !== "https://script.google.com/macros/s/AKfycbxS_dVupmTEFU0XkasXRwyxgrSqcJWlad0_1PjA8rqIbd4E2a6I5F4HDHTbFz7er9LgOw/exec" && url !== "") {
                     fetch(url)
                         .then(res => res.json())
                         .then(serverData => {
@@ -140,7 +140,7 @@
                 
                 // Kirim perubahan tersebut ke Google Sheets secara diam-diam (background)
                 const url = GOOGLE_APPS_SCRIPT_URL.trim();
-                if (url && url !== "MASUKKAN_URL_GAS_BAPAK_DI_SINI" && url !== "") {
+                if (url && url !== "https://script.google.com/macros/s/AKfycbxS_dVupmTEFU0XkasXRwyxgrSqcJWlad0_1PjA8rqIbd4E2a6I5F4HDHTbFz7er9LgOw/exec" && url !== "") {
                     fetch(url, { 
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
