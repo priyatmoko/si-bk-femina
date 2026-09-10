@@ -813,22 +813,50 @@
             
             useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs, typing]);
 
-            const handleSend = (e) => {
+            const handleSend = async (e) => {
                 e.preventDefault();
                 if(!input.trim()) return;
-                setMsgs(p => [...p, { id: Date.now(), sender: 'user', text: input }]);
-                setInput(''); setTyping(true);
 
-                // Simulasi AI Cerdas
-                setTimeout(() => {
-                    let aiText = "Terima kasih sudah berbagi. Perasaanmu sangat valid. Ingat bahwa kamu tidak sendirian. Apakah kamu merasa hal ini sangat membebani?";
-                    const lower = input.toLowerCase();
-                    if(lower.includes('teman') || lower.includes('bully')) aiText = "Masalah pertemanan seringkali bikin sedih. Kamu berhak dihargai. Jangan ragu lapor ke Guru BK ya.";
-                    else if(lower.includes('bunuh') || lower.includes('mati')) aiText = "PENTING: Tolong jangan menyakiti dirimu sendiri. Kamu berharga. Temui orang tua atau Guru BK sekarang juga.";
-                    
-                    setMsgs(p => [...p, { id: Date.now(), sender: 'ai', text: aiText }]);
-                    setTyping(false);
-                }, 1500);
+                // 1. Memunculkan pesan siswa di layar
+                const teksSiswa = input;
+                setMsgs(p => [...p, { id: Date.now(), sender: 'user', text: teksSiswa }]);
+                setInput(''); 
+                setTyping(true); // Memunculkan animasi loading AI
+
+                try {
+                    // 2. MASUKKAN URL GOOGLE APPS SCRIPT BAPAK DI BAWAH INI
+                    const URL_GAS = "https://script.google.com/macros/s/AKfycbzHA2nAXfQOvggnNXIUjKmnatKtp3BNmxiJCOM67vKDEgulNa7xq5UHdNNctCoxbcva/exec";
+
+                    // 3. Mengirim pesan ke Otak AI di Google Apps Script
+                    const response = await fetch(URL_GAS, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            action: "chat_ai",
+                            message: teksSiswa
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    // 4. Memunculkan balasan dari AI ke layar
+                    if (data.status === 'success') {
+                        setMsgs(p => [...p, { id: Date.now() + 1, sender: 'ai', text: data.reply }]);
+                    } else {
+                        throw new Error("Gagal mengambil balasan AI");
+                    }
+
+                } catch (err) {
+                    console.error("Error Sahabat Curhat:", err);
+                    // Jika internet putus atau URL salah
+                    setMsgs(p => [...p, { 
+                        id: Date.now() + 1, 
+                        sender: 'ai', 
+                        text: 'Waduh, koneksiku lagi agak lambat nih. Coba kirim pesanmu sekali lagi ya!' 
+                    }]);
+                }
+            
+                // Mematikan animasi loading
+                setTyping(false);
             };
 
             return (
