@@ -879,23 +879,25 @@
                         })
                     });
 
-                    const data = await response.json();
+                   const data = await response.json();
 
                     // 4. Memunculkan balasan dari AI ke layar
                     if (data.status === 'success') {
                         setMsgs(p => [...p, { id: Date.now() + 1, sender: 'ai', text: data.reply }]);
                     } else {
-                        throw new Error("Gagal mengambil balasan AI");
+                        // TAMPILKAN PESAN ERROR ASLI DARI SERVER KE LAYAR CHAT
+                        setMsgs(p => [...p, { id: Date.now() + 1, sender: 'ai', text: "ERROR DARI SERVER: " + data.message }]);
                     }
-
+            
                 } catch (err) {
                     console.error("Error Sahabat Curhat:", err);
-                    // Jika internet putus atau URL salah
+                    // TAMPILKAN ERROR KONEKSI JIKA INTERNET PUTUS
                     setMsgs(p => [...p, { 
                         id: Date.now() + 1, 
                         sender: 'ai', 
-                        text: 'Waduh, koneksiku lagi agak lambat nih. Coba kirim pesanmu sekali lagi ya!' 
+                        text: 'ERROR APLIKASI: ' + err.message 
                     }]);
+                }
                 }
             
                 // Mematikan animasi loading
