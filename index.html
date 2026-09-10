@@ -133,19 +133,32 @@
             }, []);
             
             // 2. Fungsi sinkronisasi data lokal ke Google Sheets (Tiap kali ada perubahan data)
-            const syncDb = (tableName, newData) => {
-                // Update tampilan layar (UI) seketika agar terasa cepat
+            const syncDb = async (tableName, newData) => {
+                // 1. Update tampilan layar (UI) seketika agar terasa cepat
                 const updatedDb = { ...db, [tableName]: newData };
                 setDb(updatedDb); 
                 
-                // Kirim perubahan tersebut ke Google Sheets secara diam-diam (background)
+                // 2. Ambil URL GAS
                 const url = GOOGLE_APPS_SCRIPT_URL.trim();
-                if (url && url !== "https://script.google.com/macros/s/AKfycbxS_dVupmTEFU0XkasXRwyxgrSqcJWlad0_1PjA8rqIbd4E2a6I5F4HDHTbFz7er9LgOw/exec" && url !== "") {
-                    fetch(url, { 
+                if (!url) return;
+
+                // 3. Kirim ke Google Sheets dengan membawa keterangan action: "sync_db"
+                try {
+                    const response = await fetch(url, { 
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ data: updatedDb }) 
-                    }).catch(e => console.log("Gagal sinkronisasi ke server Google."));
+                        body: JSON.stringify({ 
+                            action: "sync_db", // <-- Kunci pembeda agar server tidak bingung
+                            data: updatedDb 
+                        }) 
+                    });
+                    
+                    const result = await response.json();
+                    if(result.status !== 'success') {
+                        console.error("Gagal menyimpan ke Google Sheets:", result);
+                    }
+                } catch (e) {
+                    console.error("Gagal sinkronisasi ke server Google:", e);
                 }
             };
             
