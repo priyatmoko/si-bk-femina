@@ -399,83 +399,85 @@
                 </div>
                 <Card className="p-0 overflow-hidden">
                     <div className="p-4 bg-slate-50 border-b flex justify-between items-center">
-                        <h3 className="font-bold">Daftar Akun</h3>
-                        
-                        {/* --- TOMBOL TAMBAH AKUN --- */}
-                        <div className="flex space-x-2">
-                            {/* --- 1. TOMBOL IMPORT EXCEL --- */}
-                            <button 
-                                onClick={() => {
-                                    const panduan = "TUTORIAL IMPORT EXCEL:\n1. Buka Excel.\n2. Buat 6 Kolom berurutan:\n   NAMA | EMAIL | PERAN | KELAS | PASSWORD | ID ANAK\n3. Copy baris datanya (tanpa judul).\n4. Paste (Tempel) di bawah ini:\n\n(Catatan Peran: ketik 'student', 'teacher', 'admin', atau 'parent')";
-                                    const pasteData = window.prompt(panduan);
-                                    if (!pasteData) return;
+    <h3 className="font-bold">Daftar Akun</h3>
+    
+    {/* INI KOTAK PEMBUNGKUS 2 TOMBOL BARU */}
+    <div className="flex space-x-2">
+        
+        {/* --- 1. TOMBOL IMPORT EXCEL --- */}
+        <button 
+            onClick={() => {
+                const panduan = "TUTORIAL IMPORT EXCEL:\n1. Buka Excel.\n2. Buat 6 Kolom berurutan:\n   NAMA | EMAIL | PERAN | KELAS | PASSWORD | ID ANAK\n3. Copy baris datanya (tanpa judul).\n4. Paste (Tempel) di bawah ini:\n\n(Catatan Peran: ketik 'student', 'teacher', 'admin', atau 'parent')";
+                const pasteData = window.prompt(panduan);
+                if (!pasteData) return;
 
-                                    const barisExcel = pasteData.split('\n');
-                                    const akunMasalBaru = [];
+                const barisExcel = pasteData.split('\n');
+                const akunMasalBaru = [];
 
-                                    barisExcel.forEach((baris, index) => {
-                                        const kolom = baris.split('\t'); // Membaca kolom dari Excel
-                                        if(kolom.length >= 1 && kolom[0].trim() !== '') {
-                                            akunMasalBaru.push({
-                                                id: "u" + Date.now() + index,
-                                                full_name: kolom[0]?.trim() || "Tanpa Nama",
-                                                email: kolom[1]?.trim() || "-",
-                                                role: kolom[2]?.trim().toLowerCase() || "student",
-                                                class_name: kolom[3]?.trim() || "",
-                                                password: kolom[4]?.trim() || "123",
-                                                linked_student_id: kolom[5]?.trim() || "" // Khusus Orang tua
-                                            });
-                                        }
-                                    });
+                barisExcel.forEach((baris, index) => {
+                    const kolom = baris.split('\t'); // Membaca kolom dari Excel
+                    if(kolom.length >= 1 && kolom[0].trim() !== '') {
+                        akunMasalBaru.push({
+                            id: "u" + Date.now() + index,
+                            full_name: kolom[0]?.trim() || "Tanpa Nama",
+                            email: kolom[1]?.trim() || "-",
+                            role: kolom[2]?.trim().toLowerCase() || "student",
+                            class_name: kolom[3]?.trim() || "",
+                            password: kolom[4]?.trim() || "123",
+                            linked_student_id: kolom[5]?.trim() || "" // Khusus Orang tua
+                        });
+                    }
+                });
 
-                                    if(akunMasalBaru.length > 0) {
-                                        const gabunganData = [...db.profiles, ...akunMasalBaru];
-                                        syncDb('profiles', gabunganData); // Simpan ke Google Sheets
-                                        alert(`Mantap Bolo! ${akunMasalBaru.length} akun berhasil di-import dari Excel!`);
-                                    }
-                                }}
-                                className="py-1.5 px-3 text-xs bg-green-600 hover:bg-green-700 text-white rounded shadow transition flex items-center"
-                            >
-                                📊 Paste Excel
-                            </button>
+                if(akunMasalBaru.length > 0) {
+                    const gabunganData = [...db.profiles, ...akunMasalBaru];
+                    syncDb('profiles', gabunganData); // Simpan ke Google Sheets
+                    alert(`Mantap Bolo! ${akunMasalBaru.length} akun berhasil di-import dari Excel!`);
+                }
+            }}
+            className="py-1.5 px-3 text-xs bg-green-600 hover:bg-green-700 text-white rounded shadow transition flex items-center"
+        >
+            📊 Paste Excel
+        </button>
 
-                            {/* --- 2. TOMBOL TAMBAH MANUAL (SUDAH LENGKAP KELAS & PASSWORD) --- */}
-                            <button 
-                                onClick={() => {
-                                    const namaBaru = window.prompt("1. Masukkan Nama Lengkap Akun:");
-                                    if (!namaBaru) return; 
-                                    
-                                    const emailBaru = window.prompt("2. Masukkan Email (contoh: guru@mtsn3.com):");
-                                    const peranBaru = window.prompt("3. Masukkan Peran (student / teacher / admin / parent):", "student");
-                                    const kelasBaru = window.prompt("4. Masukkan KELAS (Kosongi jika bukan siswa. Contoh: VIII-A):");
-                                    const passwordBaru = window.prompt("5. Masukkan PASSWORD (default 12345):", "12345");
-                                    
-                                    let idAnak = "";
-                                    if (peranBaru.toLowerCase() === "parent") {
-                                        idAnak = window.prompt("6. Masukkan ID Siswa (Anak yang ditautkan):");
-                                    }
+        {/* --- 2. TOMBOL TAMBAH MANUAL (SUDAH LENGKAP) --- */}
+        <button 
+            onClick={() => {
+                const namaBaru = window.prompt("1. Masukkan Nama Lengkap Akun:");
+                if (!namaBaru) return; 
+                
+                const emailBaru = window.prompt("2. Masukkan Email (contoh: guru@mtsn3.com):");
+                const peranBaru = window.prompt("3. Masukkan Peran (student / teacher / admin / parent):", "student");
+                const kelasBaru = window.prompt("4. Masukkan KELAS (Kosongi jika bukan siswa. Contoh: VIII-A):");
+                const passwordBaru = window.prompt("5. Masukkan PASSWORD (default 12345):", "12345");
+                
+                let idAnak = "";
+                if (peranBaru.toLowerCase() === "parent") {
+                    idAnak = window.prompt("6. Masukkan ID Siswa (Anak yang ditautkan):");
+                }
 
-                                    const idBaru = "u" + Date.now();
-                                    const akunBaru = {
-                                        id: idBaru,
-                                        email: emailBaru || "-",
-                                        role: peranBaru || "teacher",
-                                        full_name: namaBaru,
-                                        class_name: kelasBaru || "",
-                                        password: passwordBaru || "12345",
-                                        linked_student_id: idAnak || ""
-                                    };
-                                    
-                                    const dataAkunTerbaru = [...db.profiles, akunBaru];
-                                    syncDb('profiles', dataAkunTerbaru);
-                                    alert("Mantap Bolo! Akun " + namaBaru + " berhasil ditambahkan!");
-                                }}
-                                className="py-1.5 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded shadow transition"
-                            >
-                                + Tambah Manual
-                            </button>
-                        </div>
-                    </div>
+                const idBaru = "u" + Date.now();
+                const akunBaru = {
+                    id: idBaru,
+                    email: emailBaru || "-",
+                    role: peranBaru || "teacher",
+                    full_name: namaBaru,
+                    class_name: kelasBaru || "",
+                    password: passwordBaru || "12345",
+                    linked_student_id: idAnak || ""
+                };
+                
+                const dataAkunTerbaru = [...db.profiles, akunBaru];
+                syncDb('profiles', dataAkunTerbaru);
+                alert("Mantap Bolo! Akun " + namaBaru + " berhasil ditambahkan!");
+            }}
+            className="py-1.5 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded shadow transition"
+        >
+            + Tambah Manual
+        </button>
+
+    </div>
+</div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-slate-500 bg-slate-50 uppercase border-b">
