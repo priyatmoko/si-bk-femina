@@ -95,11 +95,38 @@
             ]
         };
 
-        const DatabaseContext = createContext();
+       const DatabaseContext = createContext();
         
         const DatabaseProvider = ({ children }) => {
             const [db, setDb] = useState(initialDB);
             const [isDbLoaded, setIsDbLoaded] = useState(false);
+
+            // --- TAMBAHKAN KODE PENARIK DATA DI SINI ---
+            React.useEffect(() => {
+                const muatDatabase = async () => {
+                    try {
+                        // MASUKKAN URL GOOGLE APPS SCRIPT BAPAK DI SINI
+                        const URL_GAS = "https://script.google.com/macros/s/AKfycbxS_dVupmTEFU0XkasXRwyxgrSqcJWlad0_1PjA8rqIbd4E2a6I5F4HDHTbFz7er9LgOw/exec";
+                        
+                        // Menarik data dari sel A1 di Google Sheets
+                        const response = await fetch(URL_GAS);
+                        const dataServer = await response.json();
+                        
+                        // Jika data dari server ada isinya, kita timpa data awal (initialDB)
+                        if (dataServer && Object.keys(dataServer).length > 0 && !dataServer.error) {
+                            setDb(dataServer);
+                        }
+                    } catch (err) {
+                        console.error("Gagal menarik data dari server:", err);
+                    } finally {
+                        // Penting: Memberitahu aplikasi bahwa proses tarik data sudah selesai
+                        setIsDbLoaded(true);
+                    }
+                };
+                
+                muatDatabase(); // Eksekusi fungsinya
+            }, []); // Kurung siku kosong agar hanya jalan 1x saat aplikasi baru dibuka
+            // --- BATAS PENAMBAHAN KODE ---
             
             // 1. Mengambil data dari Google Sheets saat aplikasi pertama kali dibuka
             useEffect(() => {
