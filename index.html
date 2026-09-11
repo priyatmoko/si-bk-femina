@@ -388,53 +388,151 @@
                 });
             }
 
-            return (
-                <div className="space-y-6">
-                    <header><h2 className="text-2xl font-bold text-slate-800">Manajemen Akun Madrasah</h2></header>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <Card className="bg-brand-50 border-none"><p className="text-sm font-medium text-brand-700">Total</p><h3 className="text-3xl font-bold text-brand-900">{db.profiles.length}</h3></Card>
-                        <Card className="bg-blue-50 border-none"><p className="text-sm font-medium text-blue-700">Siswa</p><h3 className="text-3xl font-bold text-blue-900">{db.profiles.filter(u=>u.role==='student').length}</h3></Card>
-                        <Card className="bg-amber-50 border-none"><p className="text-sm font-medium text-amber-700">Guru</p><h3 className="text-3xl font-bold text-amber-900">{db.profiles.filter(u=>u.role==='teacher').length}</h3></Card>
-                        <Card className="bg-purple-50 border-none"><p className="text-sm font-medium text-purple-700">Ortu</p><h3 className="text-3xl font-bold text-purple-900">{db.profiles.filter(u=>u.role==='parent').length}</h3></Card>
-                    </div>
-                    <Card className="p-0 overflow-hidden">
-                        <div className="p-4 bg-slate-50 border-b flex justify-between items-center"><h3 className="font-bold">Daftar Akun</h3><Button className="py-1.5 text-xs">+ Tambah</Button></div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-slate-500 bg-slate-50 uppercase border-b">
-                                    <tr><th className="px-4 py-3">Nama Lengkap</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Peran</th><th className="px-4 py-3">Aksi</th></tr>
-                                </thead>
-                                <tbody>
-                                    {db.profiles.map(u => (
-                                        <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50">
-                                            <td className="px-4 py-3 font-medium">{u.full_name}<br/><span className="text-xs text-slate-400 font-normal">{u.class_name || u.role}</span></td>
-                                            <td className="px-4 py-3 text-slate-600">{u.email}</td>
-                                            <td className="px-4 py-3"><Badge type={u.role==='student'?'info':u.role==='teacher'?'warning':'neutral'}>{u.role}</Badge></td>
-                                            <td className="px-4 py-3">
-                                                <button onClick={()=>hapusUser(u.id, u.full_name)} className="text-red-500 hover:underline">Hapus</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </Card>
+           return (
+            <div className="space-y-6">
+                <header><h2 className="text-2xl font-bold text-slate-800">Manajemen Akun Madrasah</h2></header>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Card className="bg-brand-50 border-none"><p className="text-sm font-medium text-brand-700">Total</p><h3 className="text-3xl font-bold text-brand-900">{db.profiles.length}</h3></Card>
+                    <Card className="bg-blue-50 border-none"><p className="text-sm font-medium text-blue-700">Siswa</p><h3 className="text-3xl font-bold text-blue-900">{db.profiles.filter(u=>u.role==='student').length}</h3></Card>
+                    <Card className="bg-amber-50 border-none"><p className="text-sm font-medium text-amber-700">Guru</p><h3 className="text-3xl font-bold text-amber-900">{db.profiles.filter(u=>u.role==='teacher').length}</h3></Card>
+                    <Card className="bg-purple-50 border-none"><p className="text-sm font-medium text-purple-700">Ortu</p><h3 className="text-3xl font-bold text-purple-900">{db.profiles.filter(u=>u.role==='parent').length}</h3></Card>
                 </div>
-            )
-        };
+                <Card className="p-0 overflow-hidden">
+                    <div className="p-4 bg-slate-50 border-b flex justify-between items-center">
+                        <h3 className="font-bold">Daftar Akun</h3>
+                        
+                        {/* --- TOMBOL TAMBAH AKUN --- */}
+                        <button 
+                            onClick={() => {
+                                const namaBaru = window.prompt("Masukkan Nama Lengkap Akun Baru:");
+                                if (!namaBaru) return; 
+                                
+                                const emailBaru = window.prompt("Masukkan Email (contoh: guru@mtsn3.com):");
+                                const peranBaru = window.prompt("Masukkan Peran (ketik: admin / teacher / student / parent):", "teacher");
+
+                                const idBaru = "u" + Date.now();
+                                const akunBaru = {
+                                    id: idBaru,
+                                    email: emailBaru || "-",
+                                    role: peranBaru || "teacher",
+                                    full_name: namaBaru,
+                                    password: "123" // Password bawaan
+                                };
+                                
+                                const dataAkunTerbaru = [...db.profiles, akunBaru];
+                                syncDb('profiles', dataAkunTerbaru);
+                                alert("Mantap Bolo! Akun " + namaBaru + " berhasil ditambahkan!");
+                            }}
+                            className="py-1.5 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded shadow transition"
+                        >
+                            + Tambah
+                        </button>
+
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-xs text-slate-500 bg-slate-50 uppercase border-b">
+                                <tr><th className="px-4 py-3">Nama Lengkap</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Peran</th><th className="px-4 py-3">Aksi</th></tr>
+                            </thead>
+                            <tbody>
+                                {db.profiles.map(u => (
+                                    <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50">
+                                        <td className="px-4 py-3 font-medium">{u.full_name}<br/><span className="text-xs text-slate-400 font-normal">{u.class_name || u.role}</span></td>
+                                        <td className="px-4 py-3 text-slate-600">{u.email}</td>
+                                        <td className="px-4 py-3"><Badge type={u.role==='student'?'info':u.role==='teacher'?'warning':'neutral'}>{u.role}</Badge></td>
+                                        <td className="px-4 py-3">
+                                            
+                                            {/* --- TOMBOL HAPUS AKUN --- */}
+                                            <button 
+                                                onClick={() => {
+                                                    const konfirmasi = window.confirm(`Yakin ingin menghapus akun ${u.full_name}, Bolo?`);
+                                                    if (konfirmasi) {
+                                                        const dataSiswaBaru = db.profiles.filter(profile => profile.id !== u.id);
+                                                        syncDb('profiles', dataSiswaBaru);
+                                                    }
+                                                }} 
+                                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow transition"
+                                            >
+                                                Hapus
+                                            </button>
+
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+            </div>
+        )
+    };
 
         const AdminDashboardRules = () => {
-            const { db } = useDatabase();
-            const { showModal } = useModal();
+            // PENTING: Tambahkan syncDb di sini agar bisa menyimpan data
+            const { db, syncDb } = useDatabase(); 
+            const { showModal } = useModal(); 
+            
             return (
                 <div className="space-y-6">
                     <header><h2 className="text-2xl font-bold text-slate-800">Aturan E-Poin (Tata Tertib)</h2></header>
                     <Card className="p-0 overflow-hidden">
-                        <div className="p-4 bg-slate-50 border-b flex justify-between items-center"><h3 className="font-bold">Sanksi Berjenjang</h3><Button className="py-1.5 text-xs" onClick={()=>showModal("Info","Fitur edit ditambahkan di versi final.")}>+ Tambah</Button></div>
+                        <div className="p-4 bg-slate-50 border-b flex justify-between items-center">
+                            <h3 className="font-bold">Sanksi Berjenjang</h3>
+                            
+                            {/* --- TOMBOL TAMBAH SANKSI --- */}
+                            <button 
+                                onClick={() => {
+                                    const minPoin = window.prompt("Masukkan Batas MINIMAL Poin (contoh: 100):");
+                                    if (!minPoin) return; 
+                                    
+                                    const maxPoin = window.prompt("Masukkan Batas MAKSIMAL Poin (contoh: 999):");
+                                    if (!maxPoin) return;
+
+                                    const aksiSanksi = window.prompt("Masukkan Bentuk Sanksi (contoh: Dikeluarkan dari Sekolah):");
+                                    if (!aksiSanksi) return;
+
+                                    const sanksiBaru = {
+                                        id: "t" + Date.now(),
+                                        min: parseInt(minPoin), 
+                                        max: parseInt(maxPoin), 
+                                        action: aksiSanksi
+                                    };
+                                    
+                                    const dataSanksiTerbaru = [...db.tata_tertib, sanksiBaru];
+                                    
+                                    // Bonus fitur: Otomatis mengurutkan sanksi dari poin terkecil ke terbesar
+                                    dataSanksiTerbaru.sort((a, b) => a.min - b.min);
+
+                                    syncDb('tata_tertib', dataSanksiTerbaru);
+                                    alert("Mantap Bolo! Sanksi baru berhasil ditambahkan!");
+                                }}
+                                className="py-1.5 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded shadow transition"
+                            >
+                                + Tambah
+                            </button>
+                        </div>
                         <div className="divide-y divide-slate-100">
                             {db.tata_tertib.map((aturan) => (
                                 <div key={aturan.id} className="p-4 flex justify-between items-center hover:bg-slate-50">
-                                    <div><Badge type="danger">Poin {aturan.min} - {aturan.max}</Badge><p className="mt-2 font-medium text-slate-800">{aturan.action}</p></div>
+                                    <div>
+                                        <Badge type="danger">Poin {aturan.min} - {aturan.max}</Badge>
+                                        <p className="mt-2 font-medium text-slate-800">{aturan.action}</p>
+                                    </div>
+                                    
+                                    {/* --- TOMBOL HAPUS SANKSI --- */}
+                                    <button 
+                                        onClick={() => {
+                                            const konfirmasi = window.confirm(`Yakin ingin menghapus sanksi "${aturan.action}", Bolo?`);
+                                            if (konfirmasi) {
+                                                const dataSanksiBaru = db.tata_tertib.filter(item => item.id !== aturan.id);
+                                                syncDb('tata_tertib', dataSanksiBaru);
+                                            }
+                                        }}
+                                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow transition ml-4"
+                                    >
+                                        Hapus
+                                    </button>
+
                                 </div>
                             ))}
                         </div>
