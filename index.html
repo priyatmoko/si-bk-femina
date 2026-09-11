@@ -926,10 +926,14 @@
         const StudentHome = ({ onNavigate }) => {
             const { user } = useContext(AuthContext);
             const { db } = useDatabase();
+            
+            // --- 1. SAKLAR UNTUK MEMBUKA POP-UP MATERI ---
+            const [bukaMateri, setBukaMateri] = React.useState(false);
+
             const pts = db.discipline_records.filter(r=>r.student_id===user.id).reduce((a,b)=>a+b.points,0);
 
             return (
-                <div className="space-y-6">
+                <div className="space-y-6 relative">
                     <header className="mb-8">
                         <h1 className="text-2xl font-bold text-slate-800">Assalamu'alaikum, {user.full_name.split(' ')[0]} 👋</h1>
                         <p className="text-slate-500">Semoga harimu di madrasah menyenangkan.</p>
@@ -940,15 +944,96 @@
                             <h2 className="text-4xl font-extrabold mb-4">{pts}</h2>
                             <Button onClick={() => onNavigate('epoin')} className="w-full bg-white text-brand-700 hover:bg-brand-50">Cek Riwayat E-Poin</Button>
                         </Card>
+                        
                         {user.gender === 'P' && (
-                            <Card className="cursor-pointer hover:border-nisa-300 transition-colors flex flex-col justify-center" onClick={() => onNavigate('nisa')}>
-                                <div>
+                            <Card className="hover:border-nisa-300 transition-colors flex flex-col justify-between">
+                                <div className="mb-4">
                                     <h3 className="text-xl font-bold text-slate-800">Smart An-Nisa</h3>
-                                    <p className="text-sm text-slate-500 mt-2">Lapor Haid & Materi Fikih.</p>
+                                    <p className="text-sm text-slate-500 mt-1">Lapor Haid & Literasi Fikih Kewanitaan.</p>
+                                </div>
+                                
+                                {/* --- 2. DUA TOMBOL BERDAMPINGAN --- */}
+                                <div className="flex space-x-2">
+                                    <button 
+                                        onClick={() => onNavigate('nisa')}
+                                        className="flex-1 bg-pink-600 hover:bg-pink-700 text-white py-2 rounded-lg text-sm font-bold shadow-sm transition flex items-center justify-center gap-1"
+                                    >
+                                        🩸 Lapor Haid
+                                    </button>
+                                    <button 
+                                        onClick={() => setBukaMateri(true)}
+                                        className="flex-1 bg-pink-100 hover:bg-pink-200 text-pink-700 py-2 rounded-lg text-sm font-bold shadow-sm transition flex items-center justify-center gap-1"
+                                    >
+                                        📖 Materi Fikih
+                                    </button>
                                 </div>
                             </Card>
                         )}
                     </div>
+
+                    {/* --- 3. JENDELA POP-UP MATERI FIKIH HAID --- */}
+                    {bukaMateri && (
+                        <div className="fixed inset-0 z-[999] bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4">
+                            <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                                
+                                {/* Header Pop-up */}
+                                <div className="bg-pink-600 p-4 flex justify-between items-center text-white">
+                                    <h3 className="font-bold text-lg flex items-center gap-2">📖 Fikih Haid & Istihadhah</h3>
+                                    <button onClick={() => setBukaMateri(false)} className="text-white hover:text-pink-200 text-2xl leading-none">&times;</button>
+                                </div>
+                                
+                                {/* Isi Materi */}
+                                <div className="p-6 overflow-y-auto space-y-5 text-sm text-slate-700 leading-relaxed text-left">
+                                    
+                                    <section>
+                                        <h4 className="font-bold text-pink-700 text-base mb-2 border-b-2 border-pink-100 pb-1">1. Batas Waktu Keluar Darah Haid</h4>
+                                        <ul className="list-disc pl-5 space-y-1">
+                                            <li><span className="font-semibold text-slate-800">Masa Minimal:</span> 1 hari 1 malam (24 jam penuh). Jika darah berhenti sebelum 24 jam, itu bukan haid melainkan darah penyakit (Istihadhah).</li>
+                                            <li><span className="font-semibold text-slate-800">Masa Kebiasaan:</span> Umumnya 6 sampai 7 hari.</li>
+                                            <li><span className="font-semibold text-slate-800">Masa Maksimal:</span> 15 hari 15 malam.</li>
+                                            <li><span className="font-semibold text-slate-800">Masa Suci Minimal:</span> Jeda antara haid bulan lalu dan bulan ini minimal adalah 15 hari.</li>
+                                        </ul>
+                                    </section>
+
+                                    <section>
+                                        <h4 className="font-bold text-pink-700 text-base mb-2 border-b-2 border-pink-100 pb-1">2. Sifat & Warna Darah Haid</h4>
+                                        <p className="mb-2">Urutan kekuatan darah haid (dari yang paling kuat ke lemah):</p>
+                                        <ol className="list-decimal pl-5 space-y-1 font-medium text-slate-800">
+                                            <li>Hitam</li>
+                                            <li>Merah</li>
+                                            <li>Merah Kekuningan (Asyqor)</li>
+                                            <li>Kuning (Ashfar)</li>
+                                            <li>Keruh (Akdar)</li>
+                                        </ol>
+                                        <p className="mt-2 text-slate-600 italic">Catatan: Darah haid umumnya kental, hangat, dan memiliki aroma khas.</p>
+                                    </section>
+
+                                    <section className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                                        <h4 className="font-bold text-amber-800 text-base mb-2 flex items-center gap-2">⚠️ Apa itu Istihadhah?</h4>
+                                        <p className="mb-2">Jika darah terus keluar <strong>melewati batas maksimal 15 hari 15 malam</strong>, maka di hari ke-16 dan seterusnya darah tersebut dihukumi sebagai Darah Istihadhah (darah penyakit).</p>
+                                        <p className="mb-2 font-semibold text-amber-900">Wanita yang mengalami istihadhah <strong>TETAP WAJIB</strong> melaksanakan Shalat Fardhu dan Puasa Ramadhan.</p>
+                                        
+                                        <h5 className="font-bold text-amber-900 mt-3 mb-1">Tata Cara Shalat bagi Wanita Istihadhah:</h5>
+                                        <ol className="list-decimal pl-5 space-y-1 text-amber-900">
+                                            <li>Bersihkan area kewanitaan dari darah.</li>
+                                            <li>Gunakan pembalut yang baru/bersih.</li>
+                                            <li>Segera ambil wudhu <strong>SETELAH masuk waktu adzan shalat</strong> (tidak boleh wudhu sebelum masuk waktunya).</li>
+                                            <li>Satu kali wudhu hanya berlaku untuk <strong>satu kali Shalat Fardhu</strong>.</li>
+                                        </ol>
+                                    </section>
+
+                                </div>
+
+                                {/* Footer Pop-up */}
+                                <div className="p-4 border-t bg-slate-50 flex justify-end">
+                                    <button onClick={() => setBukaMateri(false)} className="px-5 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium transition shadow">
+                                        Paham & Tutup
+                                    </button>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
