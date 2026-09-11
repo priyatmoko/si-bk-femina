@@ -95,89 +95,46 @@
             ]
         };
 
-       const DatabaseContext = createContext();
+      const DatabaseContext = createContext();
         
         const DatabaseProvider = ({ children }) => {
             const [db, setDb] = useState(initialDB);
             const [isDbLoaded, setIsDbLoaded] = useState(false);
 
-            // --- TAMBAHKAN KODE PENARIK DATA DI SINI ---
+            // --- 🚨 SATUKAN URL DI SINI (SAYA PAKAI URL YANG DARI SYNCDB BAPAK) ---
+            const URL_GAS = "https://script.google.com/macros/s/AKfycbzHA2nAXfQOvggnNXIUjKmnatKtp3BNmxiJCOM67vKDEgulNa7xq5UHdNNctCoxbcva/exec";
+
+            // 1. FUNGSI MENARIK DATA (Hanya 1 jalur, tidak ada yang balapan)
             React.useEffect(() => {
                 const muatDatabase = async () => {
                     try {
-                        // MASUKKAN URL GOOGLE APPS SCRIPT BAPAK DI SINI
-                        const URL_GAS = "https://script.google.com/macros/s/AKfycbxS_dVupmTEFU0XkasXRwyxgrSqcJWlad0_1PjA8rqIbd4E2a6I5F4HDHTbFz7er9LgOw/exec";
-                        
-                        // Menarik data dari sel A1 di Google Sheets
                         const response = await fetch(URL_GAS);
                         const dataServer = await response.json();
                         
-                        // Jika data dari server ada isinya, kita timpa data awal (initialDB)
+                        // Timpa data bawaan dengan data asli dari server
                         if (dataServer && Object.keys(dataServer).length > 0 && !dataServer.error) {
                             setDb(dataServer);
                         }
                     } catch (err) {
                         console.error("Gagal menarik data dari server:", err);
                     } finally {
-                        // Penting: Memberitahu aplikasi bahwa proses tarik data sudah selesai
                         setIsDbLoaded(true);
                     }
                 };
                 
-                muatDatabase(); // Eksekusi fungsinya
-            }, []); // Kurung siku kosong agar hanya jalan 1x saat aplikasi baru dibuka
-            // --- BATAS PENAMBAHAN KODE ---
-            
-            // 1. Mengambil data dari Google Sheets saat aplikasi pertama kali dibuka
-            useEffect(() => {
-                const url = GOOGLE_APPS_SCRIPT_URL.trim();
-                if (url && url !== "https://script.google.com/macros/s/AKfycbxS_dVupmTEFU0XkasXRwyxgrSqcJWlad0_1PjA8rqIbd4E2a6I5F4HDHTbFz7er9LgOw/exec" && url !== "") {
-                    fetch(url)
-                        .then(res => res.json())
-                        .then(serverData => {
-                            // Jika server punya data, gunakan itu
-                            if (serverData && Object.keys(serverData).length > 0) {
-                                setDb(serverData);
-                            } else {
-                                // Jika Google Sheets masih kosong (pertama kali), 
-                                // kirim data dummy (initialDB) ke Google Sheets agar database terisi
-                                fetch(url, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                                    body: JSON.stringify({ data: initialDB })
-                                });
-                            }
-                            setIsDbLoaded(true);
-                        })
-                        .catch(e => {
-                            console.error("Gagal terhubung ke server Google, menggunakan mode lokal (offline).", e);
-                            setIsDbLoaded(true);
-                        });
-                } else {
-                    // Jika URL belum diisi, langsung masuk mode lokal
-                    setIsDbLoaded(true); 
-                }
+                muatDatabase(); 
             }, []);
             
-            // 2. Fungsi sinkronisasi data lokal ke Google Sheets (Tiap kali ada perubahan data)
+            // 2. FUNGSI MENYIMPAN DATA 
             const syncDb = async (tableName, newData) => {
-                // 1. Update tampilan layar (UI) seketika agar terasa cepat
                 const updatedDb = { ...db, [tableName]: newData };
                 setDb(updatedDb); 
                 
-                // 2. MASUKKAN URL GOOGLE APPS SCRIPT BAPAK DI SINI
-                // (Gunakan URL yang SAMA PERSIS dengan yang ada di fitur Sahabat Curhat)
-                const URL_GAS = "https://script.google.com/macros/s/AKfycbzHA2nAXfQOvggnNXIUjKmnatKtp3BNmxiJCOM67vKDEgulNa7xq5UHdNNctCoxbcva/exec";
-
-                // 3. Kirim ke Google Sheets dengan membawa keterangan action: "sync_db"
                 try {
                     const response = await fetch(URL_GAS, { 
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ 
-                            action: "sync_db", 
-                            data: updatedDb 
-                        }) 
+                        body: JSON.stringify({ action: "sync_db", data: updatedDb }) 
                     });
                     
                     const result = await response.json();
@@ -185,7 +142,7 @@
                         console.error("Gagal menyimpan ke Google Sheets:", result.message);
                     }
                 } catch (e) {
-                    console.error("Gagal sinkronisasi ke server Google:", e);
+                    console.error("Gagal sinkronisasi ke server:", e);
                 }
             };
             
@@ -200,7 +157,7 @@
             }
 
             return (
-                <DatabaseContext.Provider value={{ db, syncDb }}>
+                <DatabaseContext.Provider value={{ db, setDb, syncDb, isDbLoaded }}>
                     {children}
                 </DatabaseContext.Provider>
             );
